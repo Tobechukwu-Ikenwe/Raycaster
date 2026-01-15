@@ -1,11 +1,19 @@
 #include <iostream>
 #include <vector>
+
+// NOTE: Unused
 #include <thread>
+// NOTE: Unused
 #include <chrono>
 
 #include <SDL2/SDL.h> 
 #include "map.h"
-#include "Raycaster.h"
+
+// NOTE:
+// What are the flags needed to compile?
+
+// BUG: Needs to be ranamed can not find raycaster.h
+#include "raycaster.h"
 #include "player.h"
 //clang++ main.cpp -o raycaster `pkg-config --cflags --libs sdl2`
 
@@ -18,6 +26,8 @@ int main(int argc, char* argv[]){
         return 1;
     }
 
+    // NOTE: Recommendation
+    //  Lets start using smart ptrs when you can. A good rule of thumb always use smart ptrs over 'dumb ptrs' when you can
     SDL_Window *window = SDL_CreateWindow("Raycaster 3D - SDL2", 
                             SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
                             screenW, screenH, SDL_WINDOW_SHOWN);
@@ -47,8 +57,12 @@ int main(int argc, char* argv[]){
             double dx = std::cos(player.angle) * moveSpeed;
             double dy = std::sin(player.angle) * moveSpeed;
             // Add a 0.1 buffer in the direction of movement
-            if (!Map::isWall((int)(player.x + dx + (dx > 0 ? 0.1 : -0.1)), (int)player.y)) player.x += dx;
-            if (!Map::isWall((int)player.x, (int)(player.y + dy + (dy > 0 ? 0.1 : -0.1)))) player.y += dy;
+            // Note: Use static cast instead static_cast<int> over c style cast
+            // Note: Please move player.x over to a new line hard to read
+            if (!Map::isWall((int)(player.x + dx + (dx > 0 ? 0.1 : -0.1)), (int)player.y))
+              player.x += dx;
+            if (!Map::isWall((int)player.x, (int)(player.y + dy + (dy > 0 ? 0.1 : -0.1))))
+              player.y += dy;
         }
         
         if (state[SDL_SCANCODE_S]) {

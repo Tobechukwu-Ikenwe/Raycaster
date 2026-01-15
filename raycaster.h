@@ -1,3 +1,5 @@
+
+// NOTE: Same as map.h a bit redundant
 #ifndef RAYCASTER_H
 #define RAYCASTER_H
 
@@ -11,6 +13,7 @@
 
 class Raycaster{
     private:
+        // NOTE: Mark as m_width or _width
         int width;
         int height;
 
@@ -19,7 +22,9 @@ class Raycaster{
         
     }
     std::vector<int> castRays(const Player& p) {
+    // NOTE: Missing proper indentation
     std::vector<int> columnHeights(width);
+    // Note: x= space?
     for(int x= 0 ; x < width; ++x){
         double rayAngle = p.angle - Player::FOV /2.0 + (double(x)/width) * Player::FOV;
         
