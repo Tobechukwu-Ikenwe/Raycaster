@@ -1,0 +1,25 @@
+# Build outputs
+raycaster
+raycaster.exe
+*.o
+*.obj
+
+# CMake / Make
+build/
+CMakeFiles/
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+
+# SDL / runtime artifacts
+*.log
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# IDEs / editors
+.vscode/
+.idea/
+*.swp
+*.swo
