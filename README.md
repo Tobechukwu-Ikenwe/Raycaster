@@ -1,4 +1,4 @@
-# My Level-6 Raycaster Demo (SDL2 CPU)
+# My Raycaster Demo (SDL2 CPU)
 
 ## Overview
 
@@ -49,14 +49,15 @@ Once it’s running, the next step is to move the raycaster to GLSL shaders, for
 The CPU version ensures that all calculations are correct, which makes the shader version much easier to implement and debug.
 
 
-## Prerequisites
+# Prerequisites
 
-### Linux / macOS
+# Linux / macOS
+```bash
 
 sudo apt install libsdl2-dev        # Ubuntu/Debian
 brew install sdl2                   # macOS
-
-Windows
+```
+# Windows
 
 Download SDL2 development libraries: https://www.libsdl.org
 
@@ -67,45 +68,31 @@ Ensure SDL2.dll is next to the executable
 How to Run
 
 Navigate to the project directory
-
-cd path/to/raycaster_project
-
-
 Verify all files are present:
 
 ls
 main.cpp raycaster.cpp raycaster.h player.h map.cpp map.h
 
 
-Compile
+
+# Run
 
 Linux / macOS
 
-clang++ main.cpp raycaster.cpp map.cpp -std=c++17 -o raycaster `pkg-config --cflags --libs sdl2`
+```bash
 
-
-If pkg-config is unavailable:
-
-clang++ main.cpp raycaster.cpp map.cpp -std=c++17 -I/usr/include/SDL2 -D_REENTRANT -lSDL2 -o raycaster
-
-
-Windows (MinGW / MSYS2)
-
-g++ main.cpp raycaster.cpp map.cpp -I C:\SDL2\include -L C:\SDL2\lib -lSDL2main -lSDL2 -std=c++17 -o raycaster.exe
-
-
-Ensure SDL2.dll is in the same folder as raycaster.exe.
-
-Run
-
-Linux / macOS
+make
 
 ./raycaster
-
+```
 
 Windows
 
-raycaster.exe
+```bash
 
+make
+
+raycaster.exe
+```
 
 You should see a window with the ceiling, floor, and walls rendered.
