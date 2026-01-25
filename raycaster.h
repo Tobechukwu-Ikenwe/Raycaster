@@ -1,60 +1,19 @@
-
-// NOTE: Same as map.h a bit redundant
 #ifndef RAYCASTER_H
 #define RAYCASTER_H
 
-
-#pragma once
-#include <cmath>
-#include "map.h"
-#include "player.h"
 #include <vector>
+class Player;
 
+class Raycaster {
+public:
+    Raycaster(int screenWidth, int screenHeight);
+    std::vector<float> castRays(const Player& player);
 
-class Raycaster{
-    private:
-        // NOTE: Mark as m_width or _width
-        int width;
-        int height;
-
-    public:
-    Raycaster(int screenW, int screenH): width(screenW), height(screenH){
-        
-    }
-    std::vector<int> castRays(const Player& p) {
-    // NOTE: Missing proper indentation
-    std::vector<int> columnHeights(width);
-    // Note: x= space?
-    for(int x= 0 ; x < width; ++x){
-        double rayAngle = p.angle - Player::FOV /2.0 + (double(x)/width) * Player::FOV;
-        
-        double rayX = std::cos(rayAngle);
-        double rayY = std::sin(rayAngle);
-
-        double distance = 0.0;
-        bool hit = false;
-
-        while(!hit && distance < 16.0){
-            distance += 0.05;
-
-            int testX = int(p.x + rayX * distance);
-            int testY = int(p.y + rayY * distance);
-
-            if (Map::isWall(testX,testY)){
-                hit = true;
-            }
-        }
-
-        // Fix fish eye effect
-        double corrected = distance * std::cos(rayAngle - p.angle);
-            float wallHeight = float(height / corrected);
-
-            columnHeights[x] = wallHeight;
-        }
-
-        return columnHeights;
-    }
-   
+private:
+    int screenWidth_;
+    int screenHeight_;
+    float fov_ = 60.0f * 3.14159265f / 180.0f;
+    float maxDepth_ = 16.0f;
 };
 
-#endif
+#endif // RAYCASTER_H
