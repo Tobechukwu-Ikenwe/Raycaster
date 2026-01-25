@@ -74,7 +74,7 @@ cd path/to/raycaster_project
 Verify all files are present:
 
 ls
-# main.cpp raycaster.cpp raycaster.h player.h map.cpp map.h
+main.cpp raycaster.cpp raycaster.h player.h map.cpp map.h
 
 
 Compile
