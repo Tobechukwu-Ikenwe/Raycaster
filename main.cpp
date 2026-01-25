@@ -1,122 +1,246 @@
 #include <iostream>
-#include <vector>
+#include <cmath>
+#include <memory>
+#include <algorithm>
+#include <SDL2/SDL.h>
 
-// NOTE: Unused
-#include <thread>
-// NOTE: Unused
-#include <chrono>
-
-#include <SDL2/SDL.h> 
+// Project headers are intentionally minimal and decoupled.
+// Each component owns a single responsibility:
+//  - Player: camera state
+//  - Raycaster: visibility + projection math
+//  - Map: world representation and collision queries
+#include "player.h"
+#include "raycaster.h"
 #include "map.h"
 
-// NOTE:
-// What are the flags needed to compile?
+// Fixed resolution to keep CPU cost deterministic.
+// This makes performance characteristics measurable and predictable.
+constexpr int SCREEN_WIDTH  = 1280;
+constexpr int SCREEN_HEIGHT = 720;
 
-// BUG: Needs to be ranamed can not find raycaster.h
-#include "raycaster.h"
-#include "player.h"
-//clang++ main.cpp -o raycaster `pkg-config --cflags --libs sdl2`
+/*
+    Game
+    ----
+    High-level orchestration layer.
 
-constexpr int screenW = 1280;
-constexpr int screenH = 720;
+    This class intentionally avoids rendering or math logic.
+    Its sole responsibility is:
+      - lifecycle management
+      - input dispatch
+      - frame pacing
+      - delegating work to subsystems
 
-int main(int argc, char* argv[]){
-    if (SDL_Init(SDL_INIT_VIDEO) < 0){
-        std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
-        return 1;
+    This separation mirrors how larger engines scale:
+    logic stays testable, rendering stays swappable.
+*/
+class Game {
+public:
+    Game();
+    ~Game();
+
+    bool initialize();
+    void run();
+
+private:
+    void processInput(double deltaTime);
+    void render();
+
+    // SDL owns the platform abstraction (window, vsync, presentation).
+    // The engine logic remains platform-agnostic.
+    SDL_Window* window_   = nullptr;
+    SDL_Renderer* renderer_ = nullptr;
+
+    // Core simulation state
+    Player player_;
+    Raycaster raycaster_;
+
+    bool running_ = true;
+};
+
+// Raycaster is constructed with explicit resolution.
+// This avoids hidden global state and allows easy resolution scaling.
+Game::Game() : raycaster_(SCREEN_WIDTH, SCREEN_HEIGHT) {}
+
+Game::~Game() {
+    // Explicit teardown order makes ownership clear
+    if (renderer_) SDL_DestroyRenderer(renderer_);
+    if (window_)   SDL_DestroyWindow(window_);
+    SDL_Quit();
+}
+
+bool Game::initialize() {
+    // SDL handles OS-level initialization; failure here is unrecoverable
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        std::cerr << "SDL_Init failed: " << SDL_GetError() << "\n";
+        return false;
     }
 
-    // NOTE: Recommendation
-    //  Lets start using smart ptrs when you can. A good rule of thumb always use smart ptrs over 'dumb ptrs' when you can
-    SDL_Window *window = SDL_CreateWindow("Raycaster 3D - SDL2", 
-                            SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
-                            screenW, screenH, SDL_WINDOW_SHOWN);
+    // Window creation is intentionally minimal — no hidden OpenGL context.
+    // This keeps CPU-side rendering behavior transparent.
+    window_ = SDL_CreateWindow(
+        "Level6 Raycaster - SDL2 CPU Demo",
+        SDL_WINDOWPOS_CENTERED,
+        SDL_WINDOWPOS_CENTERED,
+        SCREEN_WIDTH,
+        SCREEN_HEIGHT,
+        SDL_WINDOW_SHOWN
+    );
+    if (!window_) return false;
 
-    SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    // Hardware-accelerated presentation + vsync.
+    // Rendering remains CPU-driven; SDL handles buffer swap efficiently.
+    renderer_ = SDL_CreateRenderer(
+        window_,
+        -1,
+        SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
+    );
 
-    Player player;
-    Raycaster raycaster(screenW,screenH);
-
-    Uint32 lastTime = SDL_GetTicks();
-    bool running = true;
-    SDL_Event event;
-
-    while(running){
-        Uint32 currentTime = SDL_GetTicks();
-        double deltaTime = (currentTime - lastTime) / 1000.0; 
-        lastTime = currentTime; 
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) running = false;
-        }
-
-        const Uint8* state = SDL_GetKeyboardState(NULL);
-        double moveSpeed = 3.0 * deltaTime;
-        double rotSpeed = 2.0 * deltaTime;
-
-        if (state[SDL_SCANCODE_W]) {
-            double dx = std::cos(player.angle) * moveSpeed;
-            double dy = std::sin(player.angle) * moveSpeed;
-            // Add a 0.1 buffer in the direction of movement
-            // Note: Use static cast instead static_cast<int> over c style cast
-            // Note: Please move player.x over to a new line hard to read
-            if (!Map::isWall((int)(player.x + dx + (dx > 0 ? 0.1 : -0.1)), (int)player.y))
-              player.x += dx;
-            if (!Map::isWall((int)player.x, (int)(player.y + dy + (dy > 0 ? 0.1 : -0.1))))
-              player.y += dy;
-        }
-        
-        if (state[SDL_SCANCODE_S]) {
-            double dx = std::cos(player.angle) * moveSpeed;
-            double dy = std::sin(player.angle) * moveSpeed;
-            if (!Map::isWall((int)(player.x - dx - (dx > 0 ? 0.1 : -0.1)), (int)player.y)) player.x -= dx;
-            if (!Map::isWall((int)player.x, (int)(player.y - dy - (dy > 0 ? 0.1 : -0.1)))) player.y -= dy;
-        }
-
-        if (state[SDL_SCANCODE_A]) player.angle -= rotSpeed;
-        if (state[SDL_SCANCODE_D]) player.angle += rotSpeed;
-        if (state[SDL_SCANCODE_ESCAPE]) running = false;
-
-        // Clear Screen (Background Colors)
-        SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255); // Dark Gray Ceiling
-        SDL_RenderClear(renderer);
-
-        // Clear Screen (Background Colors)
-        SDL_SetRenderDrawColor(renderer, 70, 70, 70, 255); // Lighter Gray Floor
-        SDL_Rect floorRect = {0, screenH / 2, screenW, screenH / 2};
-        SDL_RenderFillRect(renderer, &floorRect);
-        
-        auto walls = raycaster.castRays(player);
-
-    
-        for (int x = 0; x < screenW; ++x) {
-            float wallHeight = walls[x];
-            SDL_FRect wallSlice;
-            wallSlice.x = (float)x;
-            wallSlice.w = 1.0f; // Width of one slice
-            wallSlice.h = wallHeight;
-            wallSlice.y = (screenH - wallHeight) / 2.0f;
-
-            int brightness = 255 - (wallHeight / 4); 
-            if (brightness < 50) brightness = 50;
-            if (brightness > 255) brightness = 255;
-
-            SDL_SetRenderDrawColor(renderer, brightness, 0, 0, 255);    
-
-            int y_start = (screenH - wallHeight) / 2;
-            int y_end = (screenH + wallHeight) / 2;
-
-            SDL_RenderDrawLine(renderer, x, y_start, x, y_end);
-        }
-          
-        //Update screen
-        SDL_RenderPresent(renderer);
-        
-        }
-        //cleanup
-        SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-
-        return 0;
+    return renderer_ != nullptr;
 }
-    
+
+/*
+    processInput
+    ------------
+    Input is processed in terms of *intent*, not raw key presses.
+
+    Movement is frame-rate independent via deltaTime.
+    Collision is queried through the Map interface, not hardcoded logic.
+*/
+void Game::processInput(double deltaTime) {
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT)
+            running_ = false;
+    }
+
+    const Uint8* state = SDL_GetKeyboardState(nullptr);
+
+    // Tuned movement constants scaled by frame delta
+    double moveSpeed = 3.0 * deltaTime;
+    double rotSpeed  = 2.0 * deltaTime;
+
+    // Direction vector derived from player angle
+    double dx = std::cos(player_.angle) * moveSpeed;
+    double dy = std::sin(player_.angle) * moveSpeed;
+
+    // Forward / backward movement with collision queries
+    if (state[SDL_SCANCODE_W]) {
+        if (!Map::isWall(static_cast<int>(player_.x + dx),
+                         static_cast<int>(player_.y)))
+            player_.x += dx;
+
+        if (!Map::isWall(static_cast<int>(player_.x),
+                         static_cast<int>(player_.y + dy)))
+            player_.y += dy;
+    }
+
+    if (state[SDL_SCANCODE_S]) {
+        if (!Map::isWall(static_cast<int>(player_.x - dx),
+                         static_cast<int>(player_.y)))
+            player_.x -= dx;
+
+        if (!Map::isWall(static_cast<int>(player_.x),
+                         static_cast<int>(player_.y - dy)))
+            player_.y -= dy;
+    }
+
+    // Rotation is decoupled from translation
+    if (state[SDL_SCANCODE_A]) player_.angle -= rotSpeed;
+    if (state[SDL_SCANCODE_D]) player_.angle += rotSpeed;
+
+    if (state[SDL_SCANCODE_ESCAPE]) running_ = false;
+}
+
+/*
+    render
+    ------
+    Rendering is intentionally explicit and linear.
+
+    Each vertical screen column corresponds to exactly one ray.
+    This mirrors how the algorithm maps cleanly to a GPU fragment shader
+    without hiding the math behind abstractions.
+*/
+void Game::render() {
+    // Ceiling (background)
+    SDL_SetRenderDrawColor(renderer_, 70, 130, 180, 255);
+    SDL_RenderClear(renderer_);
+
+    // Floor
+    SDL_SetRenderDrawColor(renderer_, 50, 50, 50, 255);
+    SDL_Rect floorRect {
+        0,
+        SCREEN_HEIGHT / 2,
+        SCREEN_WIDTH,
+        SCREEN_HEIGHT / 2
+    };
+    SDL_RenderFillRect(renderer_, &floorRect);
+
+    // Raycasting produces one projected wall slice per column
+    auto walls = raycaster_.castRays(player_);
+
+    for (int x = 0; x < SCREEN_WIDTH; ++x) {
+        float wallHeight = walls[x];
+
+        int yStart = static_cast<int>((SCREEN_HEIGHT - wallHeight) / 2.0f);
+        int yEnd   = static_cast<int>((SCREEN_HEIGHT + wallHeight) / 2.0f);
+
+        // Distance-based shading to reinforce depth perception
+        int brightness = std::clamp(
+            255 - static_cast<int>(wallHeight * 2),
+            50,
+            255
+        );
+
+        SDL_SetRenderDrawColor(
+            renderer_,
+            brightness,
+            brightness / 2,
+            brightness / 2,
+            255
+        );
+
+        SDL_RenderDrawLine(renderer_, x, yStart, x, yEnd);
+    }
+
+    SDL_RenderPresent(renderer_);
+}
+
+/*
+    run
+    ---
+    Main loop uses fixed responsibilities:
+      - measure time
+      - process input
+      - render frame
+
+    No logic leaks across layers.
+*/
+void Game::run() {
+    Uint32 lastTime = SDL_GetTicks();
+
+    while (running_) {
+        Uint32 currentTime = SDL_GetTicks();
+        double deltaTime =
+            static_cast<double>(currentTime - lastTime) / 1000.0;
+        lastTime = currentTime;
+
+        processInput(deltaTime);
+        render();
+    }
+}
+
+/*
+    Entry point
+    -----------
+    Ownership is explicit and exception-safe.
+    main() does not contain engine logic.
+*/
+int main() {
+    auto game = std::make_unique<Game>();
+
+    if (!game->initialize())
+        return 1;
+
+    game->run();
+    return 0;
+}
