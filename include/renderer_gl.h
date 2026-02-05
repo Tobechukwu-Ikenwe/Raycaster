@@ -1,7 +1,7 @@
 #ifndef RENDERER_GL_H
 #define RENDERER_GL_H
 
-struct Player;
+class Player;
 
 class RendererGL {
 public:

@@ -14,8 +14,8 @@ public:
     static bool isBlocking(int x, int y, bool hasKey);  // Collision: true if player cannot walk through
     static int getCell(int x, int y);
 
-    static constexpr int width  = 16;
-    static constexpr int height = 16;
+    static constexpr int width  = 24;
+    static constexpr int height = 24;
 
     static const std::array<std::array<int, width>, height> layout;  // Maze data structure
 };

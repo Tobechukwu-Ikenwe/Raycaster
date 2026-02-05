@@ -329,7 +329,7 @@ void RendererGL::drawTitleScreen(int winWidth, int winHeight) {
     glClearColor(0.12f, 0.14f, 0.2f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     glUseProgram(solidProgram_);
-    glUniform3f(glGetUniformLocation(solidProgram_, "uColor"), 90.0f/255.0f, 70.0f/255.0f, 50.0f/255.0f);
+    glUniform3f(glGetUniformLocation(solidProgram_, "uColor"), 0.2f, 0.6f, 0.25f);  // green door
     glBindVertexArray(solidVao_);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);

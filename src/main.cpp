@@ -5,6 +5,7 @@
  * Maze: fixed 2D grid (map.h/map.cpp). Raycasting: GPU (GL) or CPU (raycaster.cpp).
  * UI: timer (countdown), elapsed time, score on screen; minimap at bottom.
  */
+#define SDL_MAIN_HANDLED
 #include <iostream>
 #include <cmath>
 #include <memory>
@@ -125,7 +126,7 @@ bool Game::initialize() {
         goto use_cpu;
     }
     SDL_SetWindowTitle(window_,
-        "Find the door | W/S move, A/D turn | Find the BROWN door (get the key first) | SPACE to start");
+        "Find the GREEN door | Get key first, pass brown door | SPACE to start");
     return true;
 
 use_cpu:
@@ -148,7 +149,7 @@ use_cpu:
         return false;
     }
     SDL_SetWindowTitle(window_,
-        "Find the door | W/S move, A/D turn | Find the BROWN door (get the key first) | SPACE to start");
+        "Find the GREEN door | Get key first, pass brown door | SPACE to start");
     return true;
 }
 
@@ -352,10 +353,10 @@ void Game::renderTitleScreenCPU() {
     SDL_RenderClear(sdlRenderer_);
     SDL_SetRenderDrawColor(sdlRenderer_, 255, 220, 100, 255);
     int blockW = 14, blockH = 18, gap = 6;
-    drawBlockText(sdlRenderer_, "FIND THE DOOR", w / 2, h / 2 - 40, blockW, blockH, gap);
+    drawBlockText(sdlRenderer_, "FIND THE GREEN DOOR", w / 2, h / 2 - 40, blockW, blockH, gap);
     SDL_SetRenderDrawColor(sdlRenderer_, 180, 180, 200, 255);
-    drawBlockText(sdlRenderer_, "W S A D   BROWN DOOR", w / 2, h / 2 + 50, 6, 8, 3);
-    SDL_SetRenderDrawColor(sdlRenderer_, 90, 70, 50, 255);
+    drawBlockText(sdlRenderer_, "Get key -> brown door -> green exit", w / 2, h / 2 + 50, 5, 7, 2);
+    SDL_SetRenderDrawColor(sdlRenderer_, 50, 180, 80, 255);
     SDL_Rect doorSample = { w/2 - 60, h/2 + 95, 120, 36 };
     SDL_RenderFillRect(sdlRenderer_, &doorSample);
     SDL_SetRenderDrawColor(sdlRenderer_, 255, 220, 100, 255);
@@ -375,7 +376,7 @@ void Game::renderWinScreenCPU() {
     SDL_SetRenderDrawColor(sdlRenderer_, 15, 25, 15, 255);
     SDL_RenderClear(sdlRenderer_);
     SDL_SetRenderDrawColor(sdlRenderer_, 80, 255, 120, 255);
-    drawBlockText(sdlRenderer_, "YOU FOUND THE DOOR", w / 2, h / 2 - 50, 12, 14, 4);
+    drawBlockText(sdlRenderer_, "YOU FOUND THE GREEN DOOR", w / 2, h / 2 - 50, 10, 12, 3);
     drawBlockText(sdlRenderer_, "YOU WIN!", w / 2, h / 2 + 20, 14, 16, 5);
     SDL_SetRenderDrawColor(sdlRenderer_, 200, 220, 200, 255);
     std::string timeTaken = "TIME: " + formatTime(elapsedTime_);
@@ -507,7 +508,9 @@ void Game::run() {
 /*
  * Entry point: initialize (window, GL or CPU renderer, maze), then run main loop.
  */
-int main() {
+int main(int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
     auto game = std::make_unique<Game>();
 
     if (!game->initialize())
