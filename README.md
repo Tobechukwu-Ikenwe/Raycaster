@@ -1,12 +1,41 @@
-# My Raycaster Demo (SDL2 CPU)
+# Find the Door — First-person maze raycaster
 
-## Overview
+## Game overview
 
-This project is my implementation of a **3D raycaster using SDL2 for CPU rendering**, showing per-pixel wall projection in real-time.  
+- **Goal:** Find the **golden key**, then reach the **brown locked door**, then the **green exit** to win.
+- **Maze:** Fixed 2D grid (16×16). Each cell is empty or wall; special cells: key, locked door, exit.
+- **Renderer:** Classic raycasting (GPU GLSL or CPU fallback). Walls and floor/ceiling with distance shading (depth effect).
+- **UI:** Timer (countdown), elapsed time, score on screen; **minimap at bottom** to help find the door.
 
-I deliberately chose SDL2 instead of jumping straight to GLSL shaders, because I wanted **full control over every calculation on the CPU** and a clear understanding of the GPU-CPU relationship.  
+### Controls (first-person)
 
-This project serves as a **baseline for performance, debugging, and algorithm verification**, before I move to GPU shaders for acceleration and advanced effects.
+- **W / S** → Move forward / backward  
+- **A / D** → Strafe left / right  
+- **Mouse** → Rotate view  
+- **SPACE** → Start game (on title screen)  
+- **ESC** → Quit  
+
+### Game mechanics
+
+- **Timer:** Countdown from 120 seconds. When it reaches 0, game over (score 0).
+- **Score:** Time remaining when you reach the exit (1 point per second survived).
+- **Win:** Reach the exit door with the key → full-screen “You Win!” plus time taken and score.
+
+### Build & run (Linux / WSL)
+
+```bash
+sudo apt install libsdl2-dev   # Ubuntu/Debian
+make
+./raycaster
+```
+
+OpenGL 3.3-capable driver recommended (e.g. WSLg on Windows 11). If GL is unavailable, the game falls back to a CPU raycaster at 1280×720.
+
+---
+
+## Earlier: CPU raycaster (SDL2)
+
+The codebase started as a **CPU raycaster** with SDL2 for learning. That version is replaced by the GL shader build above; the design and map layout are reused for Dungeon Run.
 
 ---
 
@@ -46,7 +75,7 @@ I love coding and I also love helping people learn to code. i take the time to e
 # Next Steps
 
 Once it’s running, the next step is to move the raycaster to GLSL shaders, for full GPU acceleration and visual effects.
-The CPU version ensures that all calculations are correct, which makes the shader version much easier to implement and debug.
+Dungeon Run uses GLSL shaders; possible next steps: more levels, textures, or a minimap.
 
 
 # Prerequisites
@@ -65,34 +94,6 @@ Extract the include and lib folders
 
 Ensure SDL2.dll is next to the executable
 
-How to Run
+### Run
 
-Navigate to the project directory
-Verify all files are present:
-
-ls
-main.cpp raycaster.cpp raycaster.h player.h map.cpp map.h
-
-
-
-# Run
-
-Linux / macOS
-
-```bash
-
-make
-
-./raycaster
-```
-
-Windows
-
-```bash
-
-make
-
-raycaster.exe
-```
-
-You should see a window with the ceiling, floor, and walls rendered.
+From the project directory run `make` then `./raycaster`. You should see a 2560×1440 window: find the key (gold wall in the inner room), then go to the green exit at the bottom.

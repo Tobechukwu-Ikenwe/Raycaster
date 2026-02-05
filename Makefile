@@ -1,34 +1,26 @@
-# Makefile for Level-6 SDL2 CPU Raycaster Demo
+# Makefile for Dungeon Run — GLSL raycaster (SDL2 + OpenGL 3.3 + GLEW)
 
-# Compiler and flags
 CXX := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -O2
+CXXFLAGS := -std=c++17 -Wall -Wextra -O2 -Iinclude
 
-# SDL2 flags (Linux/macOS)
 SDL2_CFLAGS := $(shell pkg-config --cflags sdl2)
-SDL2_LIBS := $(shell pkg-config --libs sdl2)
+SDL2_LIBS   := $(shell pkg-config --libs sdl2) -lGL
 
-# Source files
-SRC := main.cpp raycaster.cpp map.cpp
+SRC := src/main.cpp src/renderer_gl.cpp src/map.cpp src/gl_core.cpp src/raycaster.cpp
 OBJ := $(SRC:.cpp=.o)
-
-# Target executable
 TARGET := raycaster
 
-# Default target
 all: $(TARGET)
 
-# Link object files into executable
 $(TARGET): $(OBJ)
 	$(CXX) $(CXXFLAGS) $(OBJ) -o $@ $(SDL2_LIBS)
 
-# Compile source files into object files
-%.o: %.cpp
+src/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) $(SDL2_CFLAGS) -c $< -o $@
 
 # Clean build artifacts
 clean:
-	rm -f $(OBJ) $(TARGET)
+	rm -f src/*.o $(TARGET)
 
 # Run the program
 run: $(TARGET)

@@ -7,7 +7,7 @@ class Player;
 class Raycaster {
 public:
     Raycaster(int screenWidth, int screenHeight);
-    std::vector<float> castRays(const Player& player);
+    std::vector<float> castRays(const Player& player, bool hasKey);
 
 private:
     int screenWidth_;
