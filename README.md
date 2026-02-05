@@ -63,14 +63,7 @@ Testing performance on the CPU first helped me experiment with frame rates, reso
 ---
 
 
-# My goals
-I love coding and I also love helping people learn to code. i take the time to ensure that my code can be understood by all coders through my comments which contain analogies and explanations.
 
-
-# Next Steps
-
-Once it’s running, the next step is to move the raycaster to GLSL shaders, for full GPU acceleration and visual effects.
-Dungeon Run uses GLSL shaders; possible next steps: more levels, textures, or a minimap.
 
 
 # Prerequisites
