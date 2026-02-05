@@ -1,4 +1,4 @@
-# Find the Door — First-person maze raycaster
+# Find the Door
 
 ## Game overview
 
@@ -39,26 +39,21 @@ The codebase started as a **CPU raycaster** with SDL2 for learning. That version
 
 ---
 
-## Why I Chose SDL2 Instead of GLSL Shaders
+## I Implemented GL shaders
 
-While GPU shaders are the standard for real-time graphics today, I **chose SDL2 CPU rendering deliberately**:
+While GPU shaders are now fully integrated, I started with SDL2 CPU rendering deliberately before moving to shaders:
 
-1. **Transparent CPU-GPU Relationship**  
-   SDL2 lets me see exactly how my **raycasting algorithm produces each vertical slice** on the CPU before sending pixels to the GPU. This makes the path to **GPU acceleration and shaders much more intuitive**.
+Transparent CPU-GPU Transition
+SDL2 let me see exactly how my raycasting algorithm produces each vertical slice on the CPU. This made GPU acceleration and GLSL shaders much more intuitive once I implemented them.
 
-2. **Fine-Grained Debugging**  
-   Debugging shaders can be opaque. With SDL2, I **control every calculation step**, making it easier to validate the math, angles, distances, and collision detection — all critical for building a robust engine.
+Stepwise Debugging
+Shaders can be opaque to debug. By first controlling every CPU calculation — math, angles, distances, collisions — I built a solid foundation that now translates cleanly into GLSL.
 
-3. **Minimal Setup, Maximum Focus**  
-   SDL2 abstracts OS windowing and input. I can focus purely on **raycasting logic** without worrying about OpenGL boilerplate, which keeps the code clean and development efficient.
+Minimal Boilerplate, Maximum Focus
+SDL2 still handles windowing, input, and context setup, letting me focus purely on rendering logic. Adding GLSL shaders now fits seamlessly on top without disrupting the core engine.
 
-4. **Surprising Benefit — CPU-Visible Performance Scaling**  
-   Using SDL2 first allows me to **experiment with frame rates, resolution, and ray step sizes**. Once the CPU algorithm is solid, moving to GPU shaders is straightforward. This “CPU-first” approach even helps me **write better-optimized shaders**, because I fully understand what each calculation does before handing it to the GPU.
-
-> In short, using SDL2 is not a compromise — it’s a strategic choice to understand the full pipeline and prepare for a smooth transition to GLSL shaders.
-
----
-
+CPU-Visible Optimization
+Testing performance on the CPU first helped me experiment with frame rates, resolution, and ray step sizes. This informed the shader implementation, leading to better-optimized GPU code.
 ## Controls
 
 - **W / S** → Move forward/backward  
