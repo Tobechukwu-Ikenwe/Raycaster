@@ -5,15 +5,19 @@
 - **Goal:** Find the **golden key**, pass the **brown locked door**, then reach the **green door** to win.
 - **Maze:** 24×24 dungeon with corridors, rooms, and dead ends.
 - **Renderer:** Classic raycasting (GPU GLSL or CPU fallback). Walls and floor/ceiling with distance shading.
-- **UI:** Timer (countdown), elapsed time, score; **minimap at bottom** to navigate.
+- **UI:** Timer (countdown), elapsed time, score; **minimap at bottom**; key pickup notification; SDL2_ttf fonts when available.
 
 ### Controls (first-person)
 
-- **W / S** → Move forward / backward  
-- **A / D** → Strafe left / right  
+- **W** → North (up on minimap)  
+- **S** → South (down on minimap)  
+- **A** → West (left on minimap)  
+- **D** → East (right on minimap)  
 - **Mouse** → Rotate view  
 - **SPACE** → Start game (on title screen)  
 - **ESC** → Quit  
+
+WASD is map-aligned for easier navigation with the minimap.
 
 ### Game mechanics
 
@@ -33,7 +37,7 @@ Requires: Visual Studio 2022 (or Build Tools) with C++ workload, CMake, Git.
 .\build_windows.ps1
 ```
 
-The script will install CMake via winget if needed, clone vcpkg, install SDL2, build, and launch the game. Output: `build\Release\raycaster.exe`.
+The script will install CMake via winget if needed, clone vcpkg, install SDL2 and SDL2_ttf, build, and launch the game. Output: `build\Release\raycaster.exe`.
 
 Or build manually:
 

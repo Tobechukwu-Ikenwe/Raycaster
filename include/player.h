@@ -3,8 +3,8 @@
 
 class Player {
 public:
-    double x = 3.5;
-    double y = 3.5;
+    double x = 1.5;
+    double y = 1.5;
     double angle = 0.0;
 };
 
