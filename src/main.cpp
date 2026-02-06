@@ -69,6 +69,7 @@ private:
     double elapsedTime_ = 0.0;  // Seconds since game start (for "time taken" on win)
     int score_ = 0;
     Uint32 keyPickupDisplayUntil_ = 0;  // Show "KEY PICKED UP!" until this tick
+    Uint32 startHintDisplayUntil_ = 0;  // Show "Find gold key..." for 4 sec at start
     static constexpr int MINIMAP_CELL = 8;
     static constexpr int MINIMAP_MARGIN = 8;
 
@@ -198,9 +199,9 @@ void Game::updateTitle() {
     if (showTitleScreen_) return;
     std::string title = "Dungeon Run";
     if (hasWon_) {
-        title += " — You escaped! Score: " + std::to_string(score_);
+        title += " — You escaped! Score: " + std::to_string(score_) + " | R=restart ESC=quit";
     } else if (hasLost_) {
-        title += " — Time's up! Score: 0";
+        title += " — Time's up! Score: 0 | R=restart ESC=quit";
     } else {
         int sec = static_cast<int>(timer_) % 60;
         int min = static_cast<int>(timer_) / 60;
@@ -223,6 +224,7 @@ void Game::processInput(double deltaTime) {
         if (state[SDL_SCANCODE_SPACE]) {
             showTitleScreen_ = false;
             elapsedTime_ = 0.0;
+            startHintDisplayUntil_ = SDL_GetTicks() + 4000;  // Show hint for 4 sec
             SDL_SetRelativeMouseMode(SDL_TRUE);  // Mouse look
             updateTitle();
         }
@@ -261,6 +263,16 @@ void Game::processInput(double deltaTime) {
     if (state[SDL_SCANCODE_ESCAPE]) {
         SDL_SetRelativeMouseMode(SDL_FALSE);
         running_ = false;
+    }
+    if (state[SDL_SCANCODE_R]) {
+        // R = restart (reset game state)
+        player_.x = 1.5;
+        player_.y = 1.5;
+        timer_ = TIMER_START;
+        elapsedTime_ = 0.0;
+        hasKey_ = false;
+        hasWon_ = false;
+        hasLost_ = false;
     }
 
     checkPickups();
@@ -425,6 +437,8 @@ void Game::renderWinScreenCPU() {
         drawText(sdlRenderer_, "You Win!", w / 2, h / 2 - 10, 48, winGreen, true);
         drawText(sdlRenderer_, ("Time: " + formatTime(elapsedTime_)).c_str(), w / 2, h / 2 + 60, 22, lightGray, true);
         drawText(sdlRenderer_, ("Score: " + std::to_string(score_)).c_str(), w / 2, h / 2 + 95, 22, lightGray, true);
+        drawText(sdlRenderer_, "R = restart", w / 2, h / 2 + 140, 20, lightGray, true);
+        drawText(sdlRenderer_, "ESC = quit", w / 2, h / 2 + 175, 20, lightGray, true);
     } else
 #endif
     {
@@ -434,6 +448,8 @@ void Game::renderWinScreenCPU() {
         SDL_SetRenderDrawColor(sdlRenderer_, 200, 220, 200, 255);
         drawBlockText(sdlRenderer_, ("TIME: " + formatTime(elapsedTime_)).c_str(), w / 2, h / 2 + 85, 10, 12, 3);
         drawBlockText(sdlRenderer_, ("SCORE: " + std::to_string(score_)).c_str(), w / 2, h / 2 + 120, 10, 12, 3);
+        SDL_SetRenderDrawColor(sdlRenderer_, 180, 190, 200, 255);
+        drawBlockText(sdlRenderer_, "R RESTART  ESC QUIT", w / 2, h / 2 + 155, 8, 10, 2);
     }
     SDL_RenderPresent(sdlRenderer_);
 }
@@ -536,8 +552,21 @@ void Game::renderCPU() {
         drawBlockTextLeft(sdlRenderer_, ("SCORE: " + (hasWon_ ? std::to_string(score_) : (hasLost_ ? "0" : "-"))).c_str(), uiX, uiY + 2*lineH, uiBlockW, uiBlockH, uiGap);
     }
 
+    // Start hint: "Find gold key to open green door" (4 sec)
+    if (SDL_GetTicks() < startHintDisplayUntil_) {
+#ifdef HAS_SDL2_TTF
+        if (font_) {
+            SDL_Color hintColor = {255, 215, 0, 255};
+            drawText(sdlRenderer_, "Find gold key to open green door", CPU_WIDTH / 2, CPU_HEIGHT / 2 - 80, 24, hintColor, true);
+        } else
+#endif
+        {
+            SDL_SetRenderDrawColor(sdlRenderer_, 255, 215, 0, 255);
+            drawBlockText(sdlRenderer_, "FIND GOLD KEY TO OPEN GREEN DOOR", CPU_WIDTH / 2, CPU_HEIGHT / 2 - 70, 10, 12, 3);
+        }
+    }
     // Key pickup notification (center screen, 2.5 sec)
-    if (SDL_GetTicks() < keyPickupDisplayUntil_) {
+    else if (SDL_GetTicks() < keyPickupDisplayUntil_) {
 #ifdef HAS_SDL2_TTF
         if (font_) {
             SDL_Color keyColor = {255, 215, 0, 255};
@@ -550,20 +579,30 @@ void Game::renderCPU() {
         }
     }
 
-    // Controls during gameplay (bottom center): W/A/S/D map-aligned
-    const int hintY = CPU_HEIGHT - MINIMAP_MARGIN - Map::height * MINIMAP_CELL - 70;
+    // Controls instruction (top right)
+    const int ctrlPanelW = 160;
+    const int ctrlPanelH = 120;
+    SDL_Rect ctrlPanel = { CPU_WIDTH - ctrlPanelW - MINIMAP_MARGIN, MINIMAP_MARGIN, ctrlPanelW, ctrlPanelH };
+    const int hintX = ctrlPanel.x + 12;
+    const int hintY = MINIMAP_MARGIN + 20;
+    const int hintLineH = 22;
     SDL_Color hintColor = {200, 205, 220, 255};
+    SDL_SetRenderDrawColor(sdlRenderer_, 15, 18, 28, 200);
+    SDL_RenderFillRect(sdlRenderer_, &ctrlPanel);
+    SDL_SetRenderDrawColor(sdlRenderer_, 60, 70, 90, 255);
+    SDL_RenderDrawRect(sdlRenderer_, &ctrlPanel);
 #ifdef HAS_SDL2_TTF
     if (font_) {
-        drawText(sdlRenderer_, "W -> north", CPU_WIDTH / 2, hintY, 18, hintColor, true);
-        drawText(sdlRenderer_, "A -> west", CPU_WIDTH / 2, hintY + 22, 18, hintColor, true);
-        drawText(sdlRenderer_, "S -> south", CPU_WIDTH / 2, hintY + 44, 18, hintColor, true);
-        drawText(sdlRenderer_, "D -> east", CPU_WIDTH / 2, hintY + 66, 18, hintColor, true);
+        drawText(sdlRenderer_, "W -> north", hintX, hintY, 16, hintColor, false);
+        drawText(sdlRenderer_, "A -> west", hintX, hintY + hintLineH, 16, hintColor, false);
+        drawText(sdlRenderer_, "S -> south", hintX, hintY + 2*hintLineH, 16, hintColor, false);
+        drawText(sdlRenderer_, "D -> east", hintX, hintY + 3*hintLineH, 16, hintColor, false);
+        drawText(sdlRenderer_, "R -> restart", hintX, hintY + 4*hintLineH, 16, hintColor, false);
     } else
 #endif
     {
         SDL_SetRenderDrawColor(sdlRenderer_, 180, 185, 200, 255);
-        drawBlockText(sdlRenderer_, "W A S D   MOUSE  LOOK", CPU_WIDTH / 2, hintY + 35, 6, 8, 2);
+        drawBlockText(sdlRenderer_, "W A S D  MOUSE  R RESTART", ctrlPanel.x + ctrlPanelW/2, hintY + 55, 6, 8, 2);
     }
 
     renderMinimapCPU();
