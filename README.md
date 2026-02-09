@@ -5,7 +5,7 @@
 - **Goal:** Find the **golden key**, pass the **brown locked door**, then reach the **green door** to win.
 - **Maze:** 24×24 dungeon with corridors, rooms, and dead ends.
 - **Renderer:** Classic raycasting (GPU GLSL or CPU fallback). Walls and floor/ceiling with distance shading.
-- **UI:** Timer (countdown), elapsed time, score; **minimap at bottom**; key pickup notification; SDL2_ttf fonts when available.
+- **UI:** Timer (countdown), elapsed time, score; **minimap at bottom**; key pickup notification.
 
 ### Controls (first-person)
 
