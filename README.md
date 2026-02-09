@@ -9,6 +9,10 @@
 
 ### Controls (first-person)
 
+
+<img width="1596" height="936" alt="Screenshot 2026-02-06 001042" src="https://github.com/user-attachments/assets/0fed2113-6d9c-4f66-b533-f26c6a64b504" />
+
+
 - **W** → North (up on minimap)  
 - **S** → South (down on minimap)  
 - **A** → West (left on minimap)  
@@ -24,6 +28,9 @@ WASD is map-aligned for easier navigation with the minimap.
 - **Timer:** Countdown from 120 seconds. Game over when it reaches 0 (score 0).
 - **Score:** Time remaining when you reach the green door (1 point per second).
 - **Win:** Reach the green door with the key → "You Win!" plus time taken and score.
+
+
+<img width="1595" height="928" alt="Screenshot 2026-02-06 001222" src="https://github.com/user-attachments/assets/9641c3d9-f1ca-4f7f-b27c-66f53f878a5e" />
 
 ---
 
